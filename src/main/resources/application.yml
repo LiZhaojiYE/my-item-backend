@@ -1,0 +1,107 @@
+server:
+  port: 23201 # 端口号
+
+spring:
+  main:
+    banner-mode: off # 不打印 banner
+  # minio
+  servlet:
+    multipart:
+      max-file-size: 1000MB # 文件上传最大限制
+      max-request-size: 100MB # 每个文件大小限制
+  # mysql
+  datasource:
+    url: jdbc:mysql://192.168.211.77:3306/myitem?
+      serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8 # 连接
+    username: root # 账号
+    password: root # 密码
+    type: com.zaxxer.hikari.HikariDataSource # 连接池
+  # redis
+  data:
+    redis:
+      host: 192.168.211.77 # 服务器 IP
+      port: 6379 # 端口号
+      timeout: 3000ms # 超时毫秒数
+      jedis:
+        pool:
+          max-active: 8 # 最大连接
+          max-wait: -1ms # 最大阻塞时间
+          max-idle: 8 # 最大空闲
+          min-idle: 0 # 最小空闲
+  # Spring AI
+  ai:
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY} # 阿里云百炼 API_KEY
+      read-timeout: 100000 # 读取超时时间（毫秒）
+      chat:
+        options:
+          model: qwen-plus # 基础对话模型
+          max-tokens: 2000 # Token 限制
+          temperature: 0.7 # 采样温度
+          top-k: 50 # 候选池大小
+          top-p: 0.9 # 候选池门槛
+      embedding:
+        options:
+          model: text-embedding-v1 # 向量模型，阿里云百炼默认模型，不能修改
+          dimensions: 1536  # 向量维度：阿里云该模型固定 1536，不能修改
+    mcp:
+      client:
+        enabled: true # 启用 MCP 客户端
+        request-timeout: 200000 # 请求超时时间（毫秒）
+        toolcallback:
+          enabled: true # 启用工具回调
+        name: my-item-backend # 客户端名称
+        stdio:
+          servers-configuration: classpath:mcp-servers-configuration.json # MCP 服务器配置文件
+
+# mybatis-flex
+mybatis-flex:
+  global-config:
+    print-banner: false # 不打印 banner
+    logic-delete-column: isDeleted # 逻辑删除字段
+    normal-value-of-logic-delete: 0 # 未删除值
+    deleted-value-of-logic-delete: 1 # 已删除值（会被业务层覆盖为动态的 ID 值）
+  configuration:
+    map-underscore-to-camel-case: true # 下划线转驼峰
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 控制台SQL
+  type-aliases-package: com.lzj.entity # 别名包扫描
+
+# logback
+logging:
+  level:
+    org.springframework.ai: DEBUG # AI 基础日志
+    io.modelcontextprotocol: DEBUG # MCP 调用日志
+    org.springframework.ai.tool: DEBUG # 本地 Tool 工具调用日志
+
+# 自定义配置
+myitem:
+  springdoc:
+    author: 李兆基
+    url: https://localhost:23202/index.html
+    title: my-item-backend
+    description: my-item-backend的API文档
+    version: 1.0.0
+  minio:
+    bucket-name: myitem
+    avatar-dir: avatar
+    default-avatar: default-avatar.png
+    item-picture-dir: itemPicture
+    default-item-picture: default-item-picture.png
+  token:
+    access-token-prefix: "login:access:"
+    refresh-token-prefix: "login:refresh:"
+    access-token-map-prefix: "login:access-map:"
+    refresh-token-map-prefix: "login:refresh-map:"
+    access-token-expire: 600 # 访问令牌过期时间（分钟）
+    refresh-token-expire: 7 # 刷新令牌过期时间（天）
+  memory:
+    key-prefix: "myitem:chat:memory" # Redis 键前缀
+    conversation-id: "conversationId" # 会话 ID 键
+    default-conversation-id: "default" # 默认会话 ID
+    max-messages: 10 # 最大消息数
+    expire: 30 # 过期时间（分钟）
+  redis-stack:
+    host: 192.168.211.77 # 主机
+    port: 5379 # 端口
+    password: joezhou # 密码
+    prefix: "myitem:rag:" # 键前缀，RedisStack 存值取值时，均会自动使用该前缀
